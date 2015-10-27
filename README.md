@@ -1,2 +1,2 @@
-# stylight-paipa
+# python-paipa
 Python pipeline library.
