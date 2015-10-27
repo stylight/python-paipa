@@ -7,9 +7,12 @@ Tornado pipeline application
 """
 
 import logging as _logging
-import Queue as _queue
 import signal as _signal
 import sys as _sys
+if _sys.version_info > (3,):
+    import queue as _queue
+else:
+    import Queue as _queue
 
 import tornado.httpserver
 import tornado.ioloop

@@ -1,5 +1,7 @@
 import itertools as _itertools
 
+import six as _six
+
 
 def flatten(gen):
     """Flatten an iterable.
@@ -27,7 +29,7 @@ def recursive_flatten(elements):
     """
     gen = iter(elements)
     for element in gen:
-        if is_iterable(element) and not isinstance(element, basestring):
+        if is_iterable(element) and not isinstance(element, _six.string_types):
             for element in recursive_flatten(element):
                 yield element
         else:
