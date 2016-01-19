@@ -122,9 +122,6 @@ class AbstractStep(_threading.Thread):
         Sibling info, containing the sibling index of this step (starting with
         0), the cross-sibling storage and references to all sibling threads.
 
-      `_no_log_exceptions` : ``tuple``
-        Exceptions to not log
-
       `_max_retries` : ``int``
         Maximum number of retries.
 
@@ -170,7 +167,6 @@ class AbstractStep(_threading.Thread):
         self._in_queue = in_queue
         self._out_queue = out_queue
         self.sibling = sibling
-        self._no_log_exceptions = tuple(no_log_exceptions or ()) or None
 
         # Error handling
         self._max_retries = max_retries
@@ -344,24 +340,21 @@ class AbstractStep(_threading.Thread):
             except SkipEntry:
                 continue
             except Exception:
-                retried = self._retry(entry)
-                if self._no_log_exceptions:
-                    try:
-                        raise
-                    except self._no_log_exceptions:
-                        continue
-                    except Exception:
-                        pass
-
-                if retried:
-                    logger.error(
+                if self._max_retries:
+                    retried = self._retry(entry)
+                    if retried:
+                        logger.error(
                         "Error in Step.process (retrying...)", exc_info=True
-                    )
+                        )
+                    else:
+                        logger.error("Error in Step.process", exc_info=True)
+                        # TODO: close inqueue? Pass exception?
+                        # self._pass_fail()
+                    continue
                 else:
-                    logger.error("Error in Step.process", exc_info=True)
-                    # TODO: close inqueue? Pass exception?
-                    # self._pass_fail()
-                continue
+                    self._pass_fail()
+
+
             else:
                 self._pass_on(Entry(Types.regular, result, 0))
 

@@ -134,6 +134,20 @@ class TestThreadPipeline(_unittest.TestCase):
             finally:
                 raise AssertionError("Timeout exceeded")
 
+    def test_pipeline_crash(self):
+        class Crasher(_threaded.AbstractStep):
+            def process(self, entry):
+                raise ValueError("What are you looking at!?")
+
+        pipeline = _threaded.Pipeline([
+            (Crasher, 1)
+        ], max_retries=0)
+        pipeline.put("Hey you!")
+        pipeline.finish()
+        import pytest
+        with pytest.raises(ValueError):
+            pipeline.run()
+
     def test_pipeline(self):
         class Download(_threaded.AbstractStep):
             def process(self, entry):
