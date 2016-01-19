@@ -23,7 +23,7 @@ del tornado
 from . import threaded as _threaded
 
 
-logger = _logging.getLogger("core.pipeline.app")
+logger = _logging.getLogger(__name__)
 
 
 _SIGNAL_NAMES = dict(

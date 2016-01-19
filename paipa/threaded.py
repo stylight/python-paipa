@@ -45,7 +45,7 @@ class SkipEntry(Exception):
 
 if 1:  # this is to restrict pylint's scope.
     # pylint: disable = invalid-name
-    Types = _enum.IntEnum('Types', ['canary', 'exception', 'regular', 'meta'])
+    Types = _enum.IntEnum('Types', ['sentry', 'exception', 'regular', 'meta'])
     Entry = _collections.namedtuple("Entry", ["type", "payload", "retries"])
     SiblingInfo = _collections.namedtuple("SiblingInfo", [
         "index", "storage", "threads"
@@ -215,14 +215,14 @@ class AbstractStep(_threading.Thread):
 
         # If all siblings are done, leave a shutdown message for the next step
         # otherwise leave it for the siblings
-        canary = Entry(Types.canary, None, None)
+        sentry = Entry(Types.sentry, None, None)
         all_done = all(sibling.done for sibling in self.sibling.threads)
         if all_done:
             logger.debug("Thread %r: All done, passing on to next step", self)
-            self._pass_on(canary)
+            self._pass_on(sentry)
         else:
             logger.debug("Thread %r: Passing on to sibling", self)
-            self._in_queue.put(canary)
+            self._in_queue.put(sentry)
 
         self.thread_shutdown()
         if all_done:
@@ -317,7 +317,7 @@ class AbstractStep(_threading.Thread):
                 self.in_queue_empty()
                 continue
 
-            if entry.type == Types.canary:
+            if entry.type == Types.sentry:
                 self._shutdown_step()
                 break
             elif entry.type == Types.exception:
@@ -394,7 +394,7 @@ class _ConverterStep(AbstractStep):
             if not out_queue.closed:
                 if not isinstance(entry, Entry):
                     entry = Entry(Types.regular, entry, 0)
-                elif entry.type == Types.canary:
+                elif entry.type == Types.sentry:
                     self._shutdown_step()
                     break
 
@@ -470,7 +470,7 @@ class TimedChunk(AbstractStep):
                 pass_on(Entry(Types.regular, chunk, 0))
                 self._last_sent = _time.time()
 
-        if entry.type in (Types.canary, Types.meta):
+        if entry.type in (Types.sentry, Types.meta):
             pass_chunk()
             pass_on(entry)
         elif entry.type == Types.exception:
@@ -537,7 +537,7 @@ class AbstractIterStep(AbstractStep):
                     _time.sleep(.1)
                     continue
 
-                if entry.type == Types.canary:
+                if entry.type == Types.sentry:
                     raise StopIteration
                 elif entry.type == Types.exception:
                     logger.debug("Thread %r: passing on exception", self)
@@ -847,12 +847,12 @@ class Pipeline(object):
         """
         Finish the pipeline
 
-        This passes a canary entry down the queue, which tells the
+        This passes a sentry entry down the queue, which tells the
         steps to finish.
         """
         logger.debug("Finishing queue")
         self._got_entries = True
-        self._in_queue.put(Entry(Types.canary, None, None))
+        self._in_queue.put(Entry(Types.sentry, None, None))
 
     def __enter__(self):
         self.run_forever(background=True)
@@ -931,7 +931,7 @@ class Pipeline(object):
                     out = out_queue.get(block=False)
                     if out.type == Types.exception:
                         exceptions.append(out.payload)
-                    elif out.type != Types.canary:
+                    elif out.type != Types.sentry:
                         self.count += 1
             except empty:
                 pass
