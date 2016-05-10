@@ -1,12 +1,22 @@
 from setuptools import setup
 
+try:
+    from os.path import abspath, dirname, join
+    _desc = join(dirname(abspath(__file__)), 'README.rst')
+    long_description = open(_desc, 'r').read()
+except IOError:
+    long_description = "paipa"
+
+
 setup(
     name='paipa',
     version='0.1.0',
     description='Python pipeline library. Maori: (noun) pipe.',
+    long_description=long_description,
     packages=['paipa'],
     author="Bizdev Engineers",
     author_email="busdev_engineers@stylight.com",
+    url='https://github.com/stylight/python-paipa',
     tests_require=[
         'tox',
     ],
