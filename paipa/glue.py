@@ -27,7 +27,7 @@ logger = _logging.getLogger(__name__)
 
 
 _SIGNAL_NAMES = dict(
-    (k, v) for v, k in vars(_signal).iteritems() if v.startswith('SIG')
+    (k, v) for v, k in vars(_signal).items() if v.startswith('SIG')
 )
 
 

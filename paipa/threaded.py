@@ -1,18 +1,35 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-threaded pipelining framework
+paipa - the threaded pipelining framework
 
 What it does:
 
  - process stuff one step at a time
  - allows class based and function based steps
  - can scale steps independent of each other (manually)
+ - don't do deadlocks
+ - never expose the developer to the concept of a thread
+   (if she doesn't like to)
+ - run in finite batches where all threads are terminated at the end
+ - run in continuous mode while being fed through a queue
+ - automatically rate limit each step to minimize memory usage
+ - terminate the pipeline in case of an Exception and propagate the error
+   to the developer
 
-What it explicitly doesn't do:
+What it explicitly doesn't do (if it doesn't, it's not a bug!):
 
- - diamond-structured pipelines
+ - pipelines with multiple different parents. Multiple parents of
+   the same type are handled automatically though.
  - auto-scale threads
+ - bake bread
+
+What it shouldn't do (if it does, it's a bug!):
+
+ - confuse the user/developer
+ - hang on termination
+ - hog resources
+
 """
 
 import abc as _abc
@@ -29,6 +46,7 @@ else:
     import Queue as _queue
 # pylint: enable=import-error
 
+# noinspection PyCompatibility
 import enum as _enum
 import six as _six
 
@@ -50,6 +68,16 @@ if 1:  # this is to restrict pylint's scope.
     SiblingInfo = _collections.namedtuple("SiblingInfo", [
         "index", "storage", "threads"
     ])
+
+
+class NopTracker(object):
+    # TODO: Add run method
+
+    def before_process(self, name):
+        pass
+
+    def after_process(self, name):
+        pass
 
 
 class AbstractStep(_threading.Thread):
@@ -129,12 +157,12 @@ class AbstractStep(_threading.Thread):
         True, if the step is finished and shutdown
 
       `options` : ``dict``
-        The optioal step options
+        The optional step options
     """
     __metaclass__ = _abc.ABCMeta
 
     def __init__(self, in_queue, out_queue, sibling, counter, max_retries=10,
-                 threshold=64, no_log_exceptions=(), **kw):
+                 threshold=64, tracker=NopTracker(), **kw):
         """
         Initialization
 
@@ -154,9 +182,6 @@ class AbstractStep(_threading.Thread):
           `max_retries` : ``int``
             Maximum number of retries before the processing of one item is
             recognized as failed
-
-          `no_log_exceptions` : iterable
-            Exception classes which are not logged (raised by process())
 
           `kw` : ``dict``
             extra options for this step
@@ -182,6 +207,7 @@ class AbstractStep(_threading.Thread):
         self._size = None
         self._chunk = None
         self._last_sent = None
+        self._tracker = tracker
 
     def step_initialize(self):
         """ Only called on one instance of a Step. """
@@ -291,12 +317,14 @@ class AbstractStep(_threading.Thread):
             return True
         return False
 
+    # noinspection PyBroadException
     def _loop(self):
         """ Main run loop """
         # pylint: disable = too-many-branches, too-many-statements
 
         # local store, otherwise it will be gone during interpreter shutdown
         empty = _queue.Empty
+        tracker = self._tracker
         in_queue, out_queue = self._in_queue, self._out_queue
         while True:
             if out_queue.closed:
@@ -336,16 +364,23 @@ class AbstractStep(_threading.Thread):
 
             # pylint: disable = broad-except
             try:
+                try:
+                    tracker.before_process(self)
+                except Exception:
+                    logger.error("Tracker had a hickup.", exc_info=True)
                 result = self.process(entry.payload)
+                try:
+                    tracker.after_process(self)
+                except Exception:
+                    logger.error("Tracker had a hickup.", exc_info=True)
             except SkipEntry:
                 continue
             except Exception:
                 if self._max_retries:
                     retried = self._retry(entry)
                     if retried:
-                        logger.error(
-                        "Error in Step.process (retrying...)", exc_info=True
-                        )
+                        logger.error("Error in Step.process (retrying...)",
+                                     exc_info=True)
                     else:
                         logger.error("Error in Step.process", exc_info=True)
                         # TODO: close inqueue? Pass exception?
@@ -563,7 +598,6 @@ class AbstractIterStep(AbstractStep):
         self._shutdown_step()
 
 
-
 def iterstep(func):
     """
     Transform a iterator/generator filter to a pipeline step
@@ -602,6 +636,7 @@ def _sourcestep(func):
         # pylint: disable=abstract-method
 
         def _loop(self):
+            # noinspection PyBroadException
             try:
                 for value in self.process(None):
                     if self._out_queue.closed:
@@ -765,6 +800,7 @@ def _combine_thread_pipeline_steps(in_queue, need_converter, pipeline_steps,
     return out_queue, threads
 
 
+# noinspection PyPep8Naming
 class Pipeline(object):
     """
     A queue based threaded pipeline.
@@ -774,12 +810,47 @@ class Pipeline(object):
 
     The pipeline object also works as a context manager. This starts the
     pipeline as a background thread and stops it again on context exit.
+
     """
     # pylint: disable = R0902
     # (too many instance attributes)
 
     def __init__(self, steps, in_queue=None, daemon=False,
-                 quiet=False, fail_callback=lambda: None, **kw):
+                 quiet=False, fail_callback=lambda: None,
+                 **kw):
+        """
+        Params affecting the Pipeline itself:
+
+        :param steps:
+            A list of (AbstractStep subclass, int) tuples.
+
+        :param in_queue:
+            An optional in_queue. If omitted an internal one is created and
+            the adding of data has to go through the API of `Pipeline` itself.
+            It is not recommended that you use this, as the API of stuff which
+            gets sent through the queues may change.
+
+        :param daemon:
+            Shall all created threads be daemon threads or not? For more
+            information about what this means, see:
+            https://docs.python.org/2/library/threading.html#thread-objects
+
+        :param quiet:
+            Do not print progress/throughput notices.
+
+        Vars passed on the the actual steps:
+
+        :param fail_callback:
+            A callable which gets called when something goes wrong. It takes
+            no parameters.
+
+        :param tracker:
+            An object with tracking methods as attributes. The possible
+            attributes are:
+                * before_process
+                * after_process
+
+        """
         self.ok = True  # pylint: disable=invalid-name
         self._daemon = daemon
         self.options = kw
@@ -858,6 +929,7 @@ class Pipeline(object):
         self.run_forever(background=True)
         return self
 
+    # noinspection PyUnusedLocal
     def __exit__(self, exc_type, exc_value, exc_traceback):
         return self.stop()
 
@@ -943,13 +1015,14 @@ class Pipeline(object):
             thread.join()
 
         if exceptions:
+            # noinspection PyBroadException
             try:
                 # We provide this flag so that api consumers can use it to
                 # determine if we exited in a planned or in an unplanned
                 # manner and act accordingly.
                 self.ok = False
                 self._fail_callback()
-            except:  # noqa pylint: disable=bare-except
+            except Exception:  # pylint: disable=broad-except
                 pass
 
             exc = exceptions[0]
