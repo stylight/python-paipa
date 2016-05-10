@@ -5,6 +5,8 @@ setup(
     version='0.1.0',
     description='Python pipeline library. Maori: (noun) pipe.',
     packages=['paipa'],
+    author="Bizdev Engineers",
+    author_email="busdev_engineers@stylight.com",
     tests_require=[
         'tox',
     ],
