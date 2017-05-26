@@ -100,11 +100,10 @@ def combine_pipeline(source, pipeline, debugger=None):
     identity = lambda x: x
 
     if debugger is not None:
-        inst = debugger()
-        head = inst.head
-        tail = inst.tail
-        track = inst.track
-        report = inst.report
+        head = debugger.head
+        tail = debugger.tail
+        track = debugger.track
+        report = debugger.report
     else:
         head = tail = track = report = identity
 
@@ -126,6 +125,17 @@ def combine_pipeline(source, pipeline, debugger=None):
     gen = head(gen)
 
     for step in recursive_flatten(pipeline):
-        gen = defer(step)(track(gen))
+        if getattr(step, '_dont_track', False):
+            gen = defer(step)(gen)
+        else:
+            before = gen
+            gen = defer(step)(gen)
+            if before is not gen:
+                # TODO: Does this work with `defer_call`?
+                # If `before` is `gen`, this means `step` has been the
+                # `identity_step` and didn't wrap the iterator at all. This
+                # means it is already wrapped with `track` and we must skip
+                # it to prevent confusion.
+                gen = track(gen)
 
-    return report(tail(track(gen)))
+    return report(tail(gen))
