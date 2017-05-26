@@ -10,7 +10,7 @@ except IOError:
 
 setup(
     name='paipa',
-    version='0.1.1',
+    version='0.2.0',
     description='Python pipeline library. Maori: (noun) pipe.',
     long_description=long_description,
     packages=['paipa'],
