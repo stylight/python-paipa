@@ -4,5 +4,7 @@
 Pipeline processing
 """
 from .threaded import AbstractStep, Pipeline, SkipEntry, iterstep, funcstep
+from .coroutines import combine_pipeline, identity_step
 
-__all__ = ["AbstractStep", "Pipeline", "SkipEntry", "iterstep", "funcstep"]
+__all__ = ["AbstractStep", "Pipeline", "SkipEntry", "iterstep", "funcstep",
+           "combine_pipeline", "identity_step"]
