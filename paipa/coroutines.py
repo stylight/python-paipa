@@ -78,7 +78,7 @@ def combine_pipeline(source, pipeline, debugger=None):
     >>> assert hasattr(Identity, '__call__')
 
     It's possible for iterator-factories to return lists of iterators. These
-    will then be flattened into the pipeline in the order of occurence.
+    will then be flattened into the pipeline in the order of occurrence.
 
     >>> pipeline = [step, [remover, Identity()], step]
 
@@ -89,20 +89,12 @@ def combine_pipeline(source, pipeline, debugger=None):
     >>> gen = combine_pipeline(range(1000), pipeline)
     >>> assert len(list(gen)) == 500
 
-    # FIXME: Add sample debugging implementation and test it
-
-    >>> #gen = combine_pipeline(range(1000), pipeline, debug=True)
-    >>> #assert len(list(gen)) == 500
-
     The `source` can also be a callable. If it is, `combine_pipeline` will also
     return a callable, which - when called - will pass the supplied arguments
     on to the source callable.
 
     >>> gen = combine_pipeline(range, pipeline)
     >>> assert len(list(gen(1000))) == 500
-
-    >>> #gen = combine_pipeline(xrange, pipeline, debug=True)
-    >>> #assert len(list(gen(1000))) == 500
 
     """
     identity = lambda x: x

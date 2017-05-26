@@ -5,7 +5,7 @@ try:
     _desc = join(dirname(abspath(__file__)), 'README.rst')
     long_description = open(_desc, 'r').read()
 except IOError:
-    long_description = "paipa"
+    long_description = "python-paipa"
 
 
 setup(
@@ -14,9 +14,10 @@ setup(
     description='Python pipeline library. Maori: (noun) pipe.',
     long_description=long_description,
     packages=['paipa'],
-    author="Bizdev Engineers",
-    author_email="busdev_engineers@stylight.com",
+    author='python-paipa contributors',
+    author_email='python-tribe@stylight.com',
     url='https://github.com/stylight/python-paipa',
+    license='Apache Software License 2.0',
     tests_require=[
         'tox',
     ],
@@ -35,6 +36,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 )
