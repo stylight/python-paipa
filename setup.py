@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, Extension
 
 try:
     from os.path import abspath, dirname, join
@@ -10,7 +10,7 @@ except IOError:
 
 setup(
     name='paipa',
-    version='0.2.0',
+    version='0.3.0',
     description='Python pipeline library. Maori: (noun) pipe.',
     long_description=long_description,
     packages=['paipa'],
@@ -18,12 +18,22 @@ setup(
     author_email='python-tribe@stylight.com',
     url='https://github.com/stylight/python-paipa',
     license='Apache Software License 2.0',
+    setup_requires=[
+        'setuptools>=18.0',
+        'cython',
+    ],
     tests_require=[
         'tox',
     ],
     install_requires=[
         'six',
         'enum34',
+    ],
+    ext_modules=[
+        Extension(
+            'paipa.debugger',
+            sources=['paipa/debugger.py'],
+        )
     ],
     extras_require={
         'glue': ['tornado'],

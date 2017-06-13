@@ -8,3 +8,5 @@ from .coroutines import combine_pipeline, identity_step
 
 __all__ = ["AbstractStep", "Pipeline", "SkipEntry", "iterstep", "funcstep",
            "combine_pipeline", "identity_step"]
+
+__version__ = "0.3.0"
