@@ -43,7 +43,7 @@ class Counter(object):
         self.formatstring = self.formatstring + " %d/s "
         self.last_show = time.time()
 
-    def show(self, message=None):
+    def show(self):
         if self.quiet:
             return
 
@@ -62,6 +62,7 @@ class Counter(object):
 
         self.shows -= 1
 
+        total = 0
         for name in self.items:
             count = self.counts[name]
             total = count
