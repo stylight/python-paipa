@@ -1,18 +1,18 @@
-import types as _types
 import functools as _functools
 import logging as _logging
+import types as _types
 
 import six as _six
 
 from .counter import Counter
 from .iterables import recursive_flatten
 
-
 logger = _logging.getLogger(__name__)
 
 
 class PipelineStep(object):
 
+    # noinspection PyMethodMayBeStatic
     def process(self, iterator):
         return iterator
 
@@ -97,14 +97,14 @@ def combine_pipeline(source, pipeline, debugger=None):
     >>> assert len(list(gen(1000))) == 500
 
     """
-    identity = lambda x: x
+    def identity(x):
+        return x
 
     if debugger is not None:
-        inst = debugger()
-        head = inst.head
-        tail = inst.tail
-        track = inst.track
-        report = inst.report
+        head = debugger.head
+        tail = debugger.tail
+        track = debugger.track
+        report = debugger.report
     else:
         head = tail = track = report = identity
 
