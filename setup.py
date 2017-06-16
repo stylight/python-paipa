@@ -23,6 +23,7 @@ setup(
         'cython',
     ],
     tests_require=[
+        'mock',
         'tox',
     ],
     install_requires=[
