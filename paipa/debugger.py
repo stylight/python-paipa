@@ -78,7 +78,8 @@ CPU_TIME_KEYS = (
 
 
 def _get_times(cpu_keys=CPU_TIME_KEYS):
-    return dict(zip(cpu_keys, os.times())[:4])
+    # Python 3's zip type is a generator and thus not subscriptable
+    return dict(list(zip(cpu_keys, os.times()))[:4])
 
 
 def _get_rss():
