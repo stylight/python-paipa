@@ -1,3 +1,4 @@
+import collections as _collections
 import itertools as _itertools
 
 import six as _six
@@ -84,3 +85,22 @@ def chunk(chunk_size=32):
             yield [entry[1] for entry in grouped_chunk]
 
     return chunker
+
+
+def consume(iterator, n=None):
+    """Advance the iterator n-steps ahead. If n is none, consume entirely.
+
+    :param iterator:
+        Some iterable.
+
+    :param n:
+        Optionally, how many entries to consume from the iterator.
+
+    """
+    # Use functions that consume iterators at C speed.
+    if n is None:
+        # feed the entire iterator into a zero-length deque
+        _collections.deque(iterator, maxlen=0)
+    else:
+        # advance to the empty slice starting at position n
+        next(_itertools.islice(iterator, n, n), None)
