@@ -82,8 +82,8 @@ def _get_times(cpu_keys=CPU_TIME_KEYS):
     return dict(list(zip(cpu_keys, os.times()))[:4])
 
 
-def _get_rss():
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+def _get_rss(_getrusage=resource.getrusage):
+    return _getrusage(resource.RUSAGE_SELF).ru_maxrss
 
 
 class PipelineRuntimeDebugger(Debugger):
@@ -92,6 +92,9 @@ class PipelineRuntimeDebugger(Debugger):
     We keep a stack of coroutines (obtained by wrapping all of them) and then
 
     """
+    __slots__ = ['_call_counter', '_reporters', '_stack', '_start',
+                 '_rss', '_cpu_times', '_resources', '_tracked_steps',
+                 '_last_shown']
 
     def __init__(self, reporters=None, call_counter=None):
         # NOTE
@@ -170,27 +173,30 @@ class PipelineRuntimeDebugger(Debugger):
         self._last_shown = time.time()
 
     def do_track(self, iterator):
+        _len = len
+        pop, push = self.pop, self.push
+
         myself = self.register(iterator)
-        self.push(myself)
+        push(myself)
         for entry in iterator:
-            count = len(entry) if isinstance(entry, list) else 1
-            self.pop(count=count)
-            self.show()
+            count = _len(entry) if type(entry) == list else 1
+            pop(count=count)
             yield entry
-            self.push(myself)
-        self.pop()
+            push(myself)
+        pop()
 
     def head(self, iterator):
         return iterator
 
     def report(self, iterator):
-        for entry in iterator:
-            yield entry
-        self.show(force=True)
+        return iterator
 
     def tail(self, iterator):
+        show = self.show
         for entry in iterator:
+            show()
             yield entry
+        self.show(force=True)
 
 
 def _object_name(thing):
