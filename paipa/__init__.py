@@ -10,4 +10,4 @@ from .threaded import AbstractStep, Pipeline, SkipEntry, iterstep, funcstep
 __all__ = ["AbstractStep", "Pipeline", "SkipEntry", "iterstep", "funcstep",
            "combine_pipeline", "identity_step", "consume"]
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
