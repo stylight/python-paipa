@@ -76,6 +76,6 @@ code.
 
 .. class:: no-web
 
-    .. image:: https://raw.githubusercontent.com/stylight/python-paipa/docs/doc/pipeline-schematic-overview.png
+    .. image:: https://raw.githubusercontent.com/stylight/python-paipa/master/doc/pipeline-schematic-overview.png
         :width: 100%
         :align: center
