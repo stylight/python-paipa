@@ -15,15 +15,17 @@ Installation
 Quick summary
 -------------
 
-The lib allows for threaded pipelines as well as so-called co-routine
-pipelines. The main use-case is limiting peak memory usage when doing complex
+The lib allows for *threaded pipelines* as well as so-called *co-routine
+pipelines*. The main use-case is limiting peak memory usage when doing complex
 operations on large-ish (or small-ish) data-sets.
 
 Quick teaser (for more examples, see docs_):
 
     >>> pipeline = paipa.Pipeline(
-    ...     (DownloadImage, 4),
-    ...     (StoreDatabase, 1),
+    ...     [
+    ...         (DownloadImage, 4),
+    ...         (StoreDatabase, 1),
+    ...     ],
     ... )
     >>> pipeline.run()
 
@@ -47,7 +49,8 @@ Documentation
 -------------
 
  - Threaded Pipeline
-     - `How to write a pipeline <doc/ingestion.rst>`__
+     - `Introduction <doc/introduction.rst>`__
+     - `More ways to use pipelines <doc/ingestion.rst>`__
      - `How to write steps <doc/steps.rst>`__
  - Coroutine Pipeline
      - `How to write a coroutine pipeline <doc/coroutine.rst>`__

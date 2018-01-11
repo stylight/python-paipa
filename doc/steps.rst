@@ -1,5 +1,15 @@
-Paipa documentation - writing steps
-===================================
+paipa - How to write steps
+==========================
+
+Index
+-----
+
+ - Threaded Pipeline
+     - `Introduction <./introduction.rst>`__
+     - `More ways to use pipelines <./ingestion.rst>`__
+     - How to write steps
+ - Coroutine Pipeline
+     - `How to write a coroutine pipeline <./coroutine.rst>`__
 
 Steps can be written in various ways to allow for better code re-use. You can
 mix and match any of them within one pipeline.

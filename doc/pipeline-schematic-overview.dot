@@ -1,0 +1,16 @@
+digraph G {
+  node [shape=box];
+
+  "Queue 1" [shape=ellipse, color="gray", style=filled, fillcolor=lightgray];
+  "Queue 2" [shape=ellipse, color="gray", style=filled, fillcolor=lightgray];
+
+  "Queue 1" -> "download_url - thread 1";
+  "Queue 1" -> "download_url - thread 2";
+  "Queue 1" -> "download_url - thread 3";
+
+  "download_url - thread 1" -> "Queue 2";
+  "download_url - thread 2" -> "Queue 2";
+  "download_url - thread 3" -> "Queue 2";
+
+  "Queue 2" -> "process_result - thread 1";
+}

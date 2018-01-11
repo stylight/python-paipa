@@ -1,44 +1,21 @@
-Paipa documentation - Ingestion
-===============================
+paipa - More ways to use pipelines
+==================================
 
-Items can be ingested into the pipeline in various ways and can be
-grouped by use-case and data-size. For the examples we have a fictional case
-of URLs we need to download and store. We'll use 128 threads for downloading
-and 16 threads for saving it to disk. The pipeline looks like this:
+Index
+-----
 
-**How it works in a nutshell**
+ - Threaded Pipeline
+     - `Introduction <./introduction.rst>`__
+     - More ways to use pipelines
+     - `How to write steps <./steps.rst>`__
+ - Coroutine Pipeline
+     - `How to write a coroutine pipeline <./coroutine.rst>`__
 
-    The output of the previous step is the input of the next step.
 
-
-For detailed instructions on how to build steps `look here <./steps.rst>`__.
-
-.. code:: python
-
-    import paipa
-
-    def download_url(url):
-        resp = requests.get(url)
-        return resp
-
-    def save_to_disk(resp):
-        filename = make_filename(resp)
-        with open(filename, 'w') as f:
-             f.write(resp.content)
-        # We have no subsequent step, so we don't really need to return
-        # anything, but returning the filename for some indexing step could
-        # be interesting.
-        return filename
-
-    pipeline = paipa.Pipeline(
-        (paipa.funcstep(download_url), 128),
-        (paipa.funcstep(save_to_disk), 16),
-    )
-
-Repeat, this example spawns 128 download threads and 16 saving threads. All
-urls fed to this system will first be downloaded and the response forwarded
-to the saving threads.
-
+Here we will cover the various ways of putting data into a pipeline. Data can
+either be put in *before* the processing starts or even *during* processing
+is continuing. This covers most use cases for both *batch* and *daemon*
+operations.
 
 Putting in everything at once
 -----------------------------
@@ -66,7 +43,8 @@ Streaming an iterable into the pipeline
 To limit memory usage, iterators (e.g. generators) can be consumed in the
 background on a pull basis. The pipeline will pull new entries if the
 input-queue will run low. In this case a new thread is created - called
-the "source step" - which will feed the pipeline in the background.
+the "source step" - which will feed the pipeline in the background. Peak RAM
+usage will be lower than in the first example.
 
 .. code:: python
 
@@ -80,7 +58,11 @@ Streaming and running the pipeline in the background
 ----------------------------------------------------
 
 The pipeline can be run in the background as well, either explicitly or by
-using it as a context-manager.
+using it as a context-manager. Running it in the background allows us to feed
+data into the pipeline while it is running. See the `in_queue` used by a
+sub-sequent example on how to do this.
+
+First we look at just how to run the pipeline in the background.
 
 .. code:: python
 
@@ -121,8 +103,8 @@ accessing the ``alive`` attribute on it.
          print("I feel fine!")
 
 
-Using a specific queue
-----------------------
+Feeding it while it is running: using an input queue
+----------------------------------------------------
 
 Entries can also be ingested by passing a ``queue.Queue`` instance to the
 ``Pipeline`` constructor. The pipeline will then read from that queue for new
@@ -137,8 +119,10 @@ but you need to use ``run_forever(background=True)`` instead.
     my_queue = queue.Queue()
 
     pipeline = paipa.Pipeline(
-        (PingHost, 128),
-        my_queue,
+        [
+            (PingHost, 128),
+        ],
+        in_queue=my_queue,
     )
     # This one can be changed from another function, thread or scope.
     should_stop = [False]
@@ -166,7 +150,9 @@ every thread which will be created by the library.
 .. code:: python
 
     pipeline = paipa.Pipeline(
-        (PingHost, 128),
+        [
+            (PingHost, 128),
+        ],
         daemon=True
     )
     pipeline.put_iterable(all_hosts)
