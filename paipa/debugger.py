@@ -66,6 +66,7 @@ def _dict_sub(left, right):
         new[key] -= value
     return new
 
+
 CPU_TIME_KEYS = (
     'utime',   # user time
     'stime',   # system time

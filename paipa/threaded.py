@@ -39,16 +39,9 @@ import sys as _sys
 import threading as _threading
 import time as _time
 
-# pylint: disable=import-error
-if _sys.version_info > (3,):
-    import queue as _queue
-else:
-    import Queue as _queue
-# pylint: enable=import-error
-
-# noinspection PyCompatibility
 import enum as _enum
 import six as _six
+from six.moves import queue as _queue
 
 from .counter import Counter
 
