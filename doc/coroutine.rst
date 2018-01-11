@@ -10,6 +10,10 @@ Index
      - `How to write steps <./steps.rst>`__
  - Coroutine Pipeline
      - How to write a co-routine pipeline
+        - `What is it? <#what-is-it>`__
+        - `Simple example <#simple-example>`__
+        - `More involved example <#more-involved-example>`__
+        - `Debugging pipelines <#debugging-pipelines>`__
 
 What is it?
 -----------
