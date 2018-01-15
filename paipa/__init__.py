@@ -6,10 +6,11 @@ Pipeline processing
 from .iterables import consume, chunk
 from .coroutines import combine_pipeline, identity_step
 from .debugger import PipelineRuntimeDebugger
-from .threaded import AbstractStep, Pipeline, SkipEntry, iterstep, funcstep
+from .threaded import AbstractStep, AbstractIterStep, SkipEntry, Pipeline, \
+    funcstep, iterstep
 
-__all__ = ["AbstractStep", "Pipeline", "SkipEntry", "iterstep", "funcstep",
-           "combine_pipeline", "identity_step", "consume", "chunk",
-           "PipelineRuntimeDebugger"]
+__all__ = ["combine_pipeline", "identity_step", "consume", "chunk",
+           "AbstractStep", "AbstractIterStep", "SkipEntry", "Pipeline",
+           "funcstep", "iterstep", "PipelineRuntimeDebugger"]
 
 __version__ = "0.3.3"

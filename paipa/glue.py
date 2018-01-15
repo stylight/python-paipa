@@ -9,16 +9,14 @@ Tornado pipeline application
 import logging as _logging
 import signal as _signal
 import sys as _sys
-if _sys.version_info > (3,):
-    import queue as _queue
-else:
-    import Queue as _queue
 
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 import tornado as _tornado
 del tornado
+
+from six.moves import queue as _queue
 
 from . import threaded as _threaded
 

@@ -1,6 +1,6 @@
+import logging
 import resource
 import time
-import logging
 
 
 class Counter(object):
