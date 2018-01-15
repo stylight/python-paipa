@@ -15,9 +15,9 @@ Index
 Here we will look at a fully featured example which you can run right away.
 This should give you an idea of what the library can provide for you.
 
-Items can be ingested into the pipeline in various ways and can be
-grouped by use-case and data-size. For the examples we have a fictional case
-of URLs we need to download and store. We'll use 3 threads for downloading
+Items can be ingested into the pipeline in various ways which can be
+handy depending on use-cases and data-sizes. For the examples we have a fictional scenario
+where we want to download and print some URLs and their contents. We'll use 3 threads for downloading
 and 1 thread for printing the result to stdout.
 
 **How it works in a nutshell**
